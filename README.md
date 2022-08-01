@@ -62,7 +62,7 @@ management-cx41-pool-small-worker1   Ready    <none>                      190d  
 ## VCenter API simulation
 reference: https://hub.docker.com/r/satak/vcsim
 ```
-podman run -d --name vcsim -p 443:443 satak/vcsim
+$ podman run -d --name vcsim -p 443:443 satak/vcsim
 ```
 ## govc binary
 This is a binary that makes it easy to interact with VMWare. In the setup it is used to create 2 ESX hosts and 2 VM's that represent the nodes in my k9s cluster/ with equal names. It will make them after the vcsim container is running that is based on the latest API of VCenter.

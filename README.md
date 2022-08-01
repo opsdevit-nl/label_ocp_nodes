@@ -3,7 +3,7 @@ This is a working frankenstein project written by someone that's by no means an 
 
 ## Tiers
 The application is only aware of the pod/ container tier and the virtual machine/ openshift node tier in terms of (anti) affinity. While wanting to be able to prevent failure of application cluster and having anti affinity rules for the openshift node layer it could be that all or a (too) big of the openshift nodes in terms of VMs for VMWare are all located on the same ESX Node/ physical server. If that server fails it could mean unexpected failure of the application cluster.
-``
+
      ┌───────────────────────────────────────────────────┐
      │                                                   │
      │ APPLICATION                                       │
@@ -23,9 +23,9 @@ The application is only aware of the pod/ container tier and the virtual machine
      └───────────────────────────────────────────────────┘
 
      ┌───────────────────────────────────────────────────┐
-     │                                                    │
-     │  PHYSCICAL SERVERS CONTAINING ESX NODES            │
-     │                                                    │
+     │                                                   │
+     │  PHYSCICAL SERVERS CONTAINING ESX NODES           │
+     │                                                   │
      └───────────────────────────────────────────────────┘
 
 # The solution

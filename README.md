@@ -69,13 +69,13 @@ This is a binary that makes it easy to interact with VMWare. In the setup it is 
 
 ### create 2 ESX hosts
 ```
-govc host.add -hostname esxos01 -username user -password pass
-govc host.add -hostname esxos02 -username user -password pass
+$ govc host.add -hostname esxos01 -username user -password pass
+$ govc host.add -hostname esxos02 -username user -password pass
 ```
 ### create 2 VM's
 ```
-govc vm.create -m 2048 -c 2 -host=esxos01 management-cpx11-master1
-govc vm.create -m 2048 -c 2 -host=esxos02 management-cx41-pool-small-worker1
+$ govc vm.create -m 2048 -c 2 -host=esxos01 management-cpx11-master1
+$ govc vm.create -m 2048 -c 2 -host=esxos02 management-cx41-pool-small-worker1
 ```
 # Environment variables
 
@@ -99,7 +99,7 @@ The client-go package automatically picks up the kubeconfig that is stored at ~/
 
 ## See on what ESX node one of the vm's is running (look at Host:)
 ```
-govc vm.info management-cx41-pool-small-worker1
+$ govc vm.info management-cx41-pool-small-worker1
 Name:           management-cx41-pool-small-worker1
   Path:         /DC0/vm/management-cx41-pool-small-worker1
   UUID:         195560ab-4e87-58f3-92ea-7a32e5491f4f
@@ -119,7 +119,7 @@ Name:           management-cx41-pool-small-worker1
 
 ## Migrate it to another ESX host
 ```
-govc vm.migrate -host /DC0/host/esxos02/esxos02 /DC0/vm/management-cx41-pool-small-worker1
+$ govc vm.migrate -host /DC0/host/esxos02/esxos02 /DC0/vm/management-cx41-pool-small-worker1
 ```
 
 ## Run ./label_ocp_nodes again
@@ -129,7 +129,7 @@ govc vm.migrate -host /DC0/host/esxos02/esxos02 /DC0/vm/management-cx41-pool-sma
 
 ## Check the labels
 ```
-oc get nodes --show-labels
+$ oc get nodes --show-labels
 NAME                                 STATUS   ROLES                       AGE    VERSION        LABELS
 management-cpx11-master1             Ready    control-plane,etcd,master   190d   v1.24.1+k3s1   esx-node=esxos01
 management-cx41-pool-small-worker1   Ready    <none>                      190d   v1.24.1+k3s1   esx-node=esxos02

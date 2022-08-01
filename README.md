@@ -95,9 +95,32 @@ export GOVMOMI_URL=https://user:pass@localhost/sdk
 The client-go package automatically picks up the kubeconfig that is stored at ~/.kube/config. It is also possible to let it look for a secret so that when it is running as a container on the cluster it has proper access.
 
 # Testing the script
-## Check if the esx nodes and vm's are present by running govc find -l
-
-## See on what ESX node one of the vm's is running (look at Host:)
+## 1. Check if the esx nodes and vm's are present by running govc find -l
+```
+$ govc find -l
+Folder                       /
+Datacenter                   /DC0
+Folder                       /DC0/vm
+...
+VirtualMachine               /DC0/vm/management-cpx11-master1
+VirtualMachine               /DC0/vm/management-cx41-pool-small-worker1
+Folder                       /DC0/host
+...
+ComputeResource              /DC0/host/esxos01
+HostSystem                   /DC0/host/esxos01/esxos01
+ResourcePool                 /DC0/host/esxos01/Resources
+ComputeResource              /DC0/host/esxos02
+HostSystem                   /DC0/host/esxos02/esxos02
+ResourcePool                 /DC0/host/esxos02/Resources
+Folder                       /DC0/datastore
+Datastore                    /DC0/datastore/LocalDS_0
+Folder                       /DC0/network
+Network                      /DC0/network/VM Network
+DistributedVirtualSwitch     /DC0/network/DVS0
+DistributedVirtualPortgroup  /DC0/network/DVS0-DVUplinks-9
+DistributedVirtualPortgroup  /DC0/network/DC0_DVPG0
+```
+## 2. See on what ESX node one of the vm's is running (look at Host:)
 ```
 $ govc vm.info management-cx41-pool-small-worker1
 Name:           management-cx41-pool-small-worker1
@@ -112,22 +135,24 @@ Name:           management-cx41-pool-small-worker1
   Host:         esxos01
 ```
 
-## Run ./label_ocp_nodes
+## 3. Run ./label_ocp_nodes
 ```
+$ ./label_ocp_nodes
 2022/08/01 21:44:06 Node management-cx41-pool-small-worker1 labelled successfully with esx-node esxos01.
 ```
 
-## Migrate it to another ESX host
+## 4. Migrate it to another ESX host
 ```
 $ govc vm.migrate -host /DC0/host/esxos02/esxos02 /DC0/vm/management-cx41-pool-small-worker1
 ```
 
-## Run ./label_ocp_nodes again
+## 5. Run ./label_ocp_nodes again
 ```
+$ ./label_ocp_nodes
 2022/08/01 21:44:06 Node management-cx41-pool-small-worker1 labelled successfully with esx-node esxos02.
 ```
 
-## Check the labels
+## 6. Check the labels
 ```
 $ oc get nodes --show-labels
 NAME                                 STATUS   ROLES                       AGE    VERSION        LABELS
@@ -135,8 +160,8 @@ management-cpx11-master1             Ready    control-plane,etcd,master   190d  
 management-cx41-pool-small-worker1   Ready    <none>                      190d   v1.24.1+k3s1   esx-node=esxos02
 ```
 
-## Run ./label_ocp_nodes without any changes
-noting happens because in the main package it has been checked if the current situation is changed and if the VMWare API responded properly/ is not down:
+## 7. Run ./label_ocp_nodes without any changes
+Noting happens because in the main package it has been checked if the current situation is changed and if the VMWare API responded properly/ is not down:
 ```
 if labels["esx-node"] != vms[n.Name] && vms[n.Name] != "" {
 ```

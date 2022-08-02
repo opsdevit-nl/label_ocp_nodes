@@ -1,8 +1,8 @@
 ## Summary
-This is a working frankenstein project written by someone that's by no means an expert in Go. It tries to solve the situation of being unaware of the hardware tier when having Kubernetes of Openshift running on VMWare.
+This is a working frankenstein project written by someone that's by no means an expert in Golang. It tries to solve the situation of being unaware of the hardware tier when having Kubernetes or Openshift running on VMWare.
 
 ## Tiers
-The application is only aware of the pod/ container tier and the virtual machine/ openshift node tier in terms of (anti) affinity. While wanting to be able to prevent failure of application cluster and having anti affinity rules for the openshift node layer it could be that all or a (too) big of the openshift nodes in terms of VMs for VMWare are all located on the same ESX Node/ physical server. If that server fails it could mean unexpected failure of the application cluster.
+The application is only aware of the pod/ container tier and the virtual machine/ openshift node tier in terms of (anti) affinity. While wanting to be able to prevent failure of the application cluster and having anti-affinity rules for the openshift node layer it could be that all or a (too) big part of the Kubernetes/ Openshift nodes in terms of VMs are all located on the same ESX Node/ physical server. If that server fails it could mean unexpected failure of the application cluster.
 
      ┌───────────────────────────────────────────────────┐
      │                                                   │
@@ -24,24 +24,24 @@ The application is only aware of the pod/ container tier and the virtual machine
 
      ┌───────────────────────────────────────────────────┐
      │                                                   │
-     │  PHYSCICAL SERVERS CONTAINING ESX NODES           │
+     │  PHYSCICAL SERVERS CONTAINING ESX NODES/ HOSTS    │
      │                                                   │
      └───────────────────────────────────────────────────┘
 
 ## The solution
-The solution is to label the Openshift nodes with the ESX Node they are located at. The application can then monitor that label of the Openshift nodes. In the begin scenario the application can deploy their instances spread on different Openshift ESX Nodes. If at the VMWare level the VM's/ Openshift nodes are migrated to another ESX Node for maintanance or in case of failure this program will relabel the ESX Nodes. The application can then re-spread/ re-balance their instances again.
+The solution is to label the Kubernetes/ Openshift nodes with the ESX Node they are located at. The application can then monitor that label of the Openshift nodes. In a start scenario the application can deploy their instances spread on different ESX Nodes. If at the VMWare level the VM's/ Openshift nodes are migrated to another ESX Node for maintanance or in case of failure this program will relabel the ESX Nodes (if run in a loop). The application can then re-spread/ re-balance their instances again based on anti-afinity rules.
 
 ## Packages
 This project contains code examples based mainly on 2 packages.
 
 ### govmomi
-This the most populair Go package for talking to the VSphere/ ESX API. In the package 'get_vms' a code example is used and modified from someone that used govmomi and was correspondig at this Github issue: https://github.com/vmware/govmomi/issues/1495
+This the most populair Golang package for talking to the VSphere/ ESX API. In the package `get_vms` a code example is used and modified from someone that used govmomi and was correspondig at this Github issue: https://github.com/vmware/govmomi/issues/1495
 
 ### k8s.io/client-go/kubernetes
-This is the official Go package talking to an Kubernetes cluster. In the 'main' package a code example is used and modified from some that used client-go and was corresponding at this Stackoverflow issue (although hardly recognizable): https://stackoverflow.com/questions/64191539/how-to-list-all-pods-in-k8s-cluster-using-client-go-in-golang-program
+This is the official Golang package talking to the API of a Kubernetes cluster. In the `main` package a code example is used and modified from someone that used `client-go` and `k8s.io/apimachinery` and was corresponding at this Stackoverflow issue (although hardly recognizable): https://stackoverflow.com/questions/64191539/how-to-list-all-pods-in-k8s-cluster-using-client-go-in-golang-program
 
 ### How it fits together
-The main package at some point is invoking 	vms := get_vms.Show(). This function is found in the 'get_vms' package and retrieves a map return_vms[vm.Summary.Config.Name] = hname . This map contains as key the VM name, which is equal to the Openshift/ Kubernetes node, and as value the hostname. In the main package the the VM name of the corrent Openshift node is looping over is then looked up in the map as key and the value/ hostname, at Value: vms[n.Name], is then returned and used for a patch struct. This is then applied to the node as label.
+The main package at some point is invoking 	`vms := get_vms.Show()`. This function is found in the `get_vms` package and retrieves a map return_vms[vm.Summary.Config.Name] = hname . This map contains as key the VM name, which is equal to the `Openshift/ Kubernetes node`, and as value the `hostname`. In the main package the the VM name of the corrent Openshift node is looping over is then looked up in the map as key and the value/ hostname, at Value: `vms[n.Name]`, is then returned and used for a patch struct. This is then applied to the node as label.
 ```
 		payload := []patchStringValue{{
 			Op:    "replace",
@@ -51,8 +51,8 @@ The main package at some point is invoking 	vms := get_vms.Show(). This function
 ```
 ## Test setup
 
-### K9s cluster
-I have a k9s kubernetes cluster running deployed on hetzner with https://github.com/vitobotta/hetzner-k3s
+### K3s cluster
+I have a k3s kubernetes cluster running deployed on hetzner with https://github.com/vitobotta/hetzner-k3s
 It contains 2 nodes, 1 master and 1 worker node:
 ```
 NAME                                 STATUS   ROLES                       AGE    VERSION
@@ -65,7 +65,7 @@ reference: https://hub.docker.com/r/satak/vcsim
 $ podman run -d --name vcsim -p 443:443 satak/vcsim
 ```
 ### govc binary
-This is a binary that makes it easy to interact with VMWare. In the setup it is used to create 2 ESX hosts and 2 VM's that represent the nodes in my k9s cluster/ with equal names. It will make them after the vcsim container is running that is based on the latest API of VCenter.
+This is a binary that makes it easy to interact with VMWare. In the setup it is used to create 2 ESX hosts and 2 VM's that represent the nodes in my k3s cluster/ with equal names. It will make them after the `vcsim` container is running that is based on the latest API of VCenter.
 
 #### create 2 ESX hosts
 ```
@@ -79,8 +79,8 @@ $ govc vm.create -m 2048 -c 2 -host=esxos02 management-cx41-pool-small-worker1
 ```
 ## Environment variables
 
-### Interaction with VMWare
-The following environment variables are set and automatically picked up buy the packages and the govc binary to communicate with VMware and/ or 'vcsim'
+### Interaction with VMWare VCenter
+The following environment variables are set and automatically picked up buy the packages and the govc binary to communicate with VCenter and/ or `vcsim`
 ```
 export GOVC_URL=https://user:pass@127.0.0.1:443
 export GOVC_INSECURE=true
@@ -92,7 +92,7 @@ export GOVMOMI_INSECURE=true
 export GOVMOMI_URL=https://user:pass@localhost/sdk
 ```
 ### Interaction with Kubernetes
-The client-go package automatically picks up the kubeconfig that is stored at ~/.kube/config. It is also possible to let it look for a secret so that when it is running as a container on the cluster it has proper access.
+The `apimachinery` package automatically picks up the kubeconfig that is stored at ~/.kube/config. It is also possible to let it look for a secret so that when it is running as a container on the cluster it has proper access. More info https://youtu.be/1mNYSn2KMZk?t=1063
 
 ## Testing the script
 ### 1. Check if the esx nodes and vm's are present by running govc find -l
@@ -162,7 +162,7 @@ management-cx41-pool-small-worker1   Ready    <none>                      190d  
 ```
 
 ### 7. Run ./label_ocp_nodes without any changes
-Noting happens because in the main package it has been checked if the current situation is changed and if the VMWare API responded properly/ is not down:
+Noting happens because in the `main` package it has been checked if the current situation is changed and if the VMWare API responded properly/ is not down:
 ```
 if labels["esx-node"] != vms[n.Name] && vms[n.Name] != "" {
 ```

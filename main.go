@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 
-	"hello-world/get_vms"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -35,7 +33,7 @@ func main() {
 		panic(err.Error())
 	}
 
-	vms := get_vms.Show()
+	vms := getVMS()
 	for _, n := range nodes.Items {
 		// labels := n.ObjectMeta.Labels
 		// labels["esx-node"] = vms[n.Name]
